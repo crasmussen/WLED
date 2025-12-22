@@ -53,7 +53,7 @@ public:
   {
     // if usermod is disabled or called during strip updating just exit
     // NOTE: on very long strips strip.isUpdating() may always return true so update accordingly
-    if (!isEnabled || strip.isUpdating() || millis() - lastTime <= loopInterval)
+    if (!isEnabled || millis() - lastTime <= loopInterval)
     {
       return;
     }
@@ -107,7 +107,7 @@ public:
     // Current + status
     JsonArray currArr = user.createNestedArray(F("Current"));
     currArr.add(currentAverage);                    // 2 decimal places
-    currArr.add(tripped ? F("TRIPPED!") : F("OK"));
+    currArr.add(tripped ? F(" - TRIPPED!") : F(" - OK"));
   }
 
   void addToJsonState(JsonObject& root) {
