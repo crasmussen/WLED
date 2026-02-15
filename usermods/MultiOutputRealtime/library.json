@@ -1,0 +1,4 @@
+{
+  "name": "MultiOutputRealtime",
+  "build": { "libArchive": false }
+}

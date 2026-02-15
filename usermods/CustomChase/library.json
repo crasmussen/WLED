@@ -1,0 +1,18 @@
+{
+  "name": "CustomChase",
+  "version": "1.0.0",
+  "description": "Custom chase effect for WLED",
+  "keywords": "wled, usermod, effect, led",
+  "authors": {
+    "name": "Your Name"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "frameworks": "arduino",
+  "platforms": "*",
+  "build": {
+    "libArchive": false
+  }
+}
