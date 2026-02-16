@@ -40,37 +40,34 @@ class CustomChaseUsermod : public Usermod {
      * Custom Chase Effect Implementation for RGBW LEDs
      * This is called by WLED's effect engine
      */
-    static uint16_t customChaseEffect(void) {
-      WS2812FX* strip_ptr = &strip;
-      Segment& seg = strip_ptr->getSegment(strip_ptr->getCurrSegmentId());
-      
+    static void customChaseEffect(void) {
+      Segment& seg = strip.getSegment(strip.getCurrSegmentId());
+
       // Get effect parameters from WLED sliders
       uint16_t delay_ms = 20 + ((255 - seg.speed) * 2);  // Speed slider
       uint8_t intensity = seg.intensity;  // Intensity slider
       uint32_t color = seg.colors[0];  // Primary color (includes white channel)
-      
+
       // Calculate chase length based on intensity
       uint8_t chase_len = 2 + (intensity / 32);  // 2-10 LEDs
-      
+
       // Clear all LEDs in segment
       seg.fill(BLACK);
-      
+
       // Get current position (cycles through segment)
-      uint16_t pos = strip_ptr->now / delay_ms;
+      uint16_t pos = strip.now / delay_ms;
       pos = pos % seg.virtualLength();
-      
+
       // Draw the chase
       for (uint8_t i = 0; i < chase_len; i++) {
         // Calculate brightness fade for trail effect
         uint8_t brightness = 255 - (i * (255 / chase_len));
         uint32_t faded_color = color_fade_rgbw(color, brightness, seg.hasWhite());
-        
+
         // Set LED with wrap-around
         uint16_t led_pos = (pos + seg.virtualLength() - i) % seg.virtualLength();
         seg.setPixelColor(led_pos, faded_color);
       }
-      
-      return delay_ms;
     }
     
     /*
