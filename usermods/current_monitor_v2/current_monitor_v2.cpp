@@ -11,8 +11,7 @@ private:
   static constexpr unsigned long minLoopInterval = 1000;  // minimum allowable interval (ms)
   unsigned long loopInterval = 100;
   unsigned long lastTime = 0;
-  bool isEnabled = false;
-  float temperature = 0.0f;
+  bool isEnabled = true;
   uint8_t previousPlaylist = 0;         // Stores the playlist that was active before high-temperature activation
   uint8_t previousPreset = 0;           // Stores the preset that was active before high-temperature activation
   uint8_t presetToActivate = 0;         // Preset to activate when temp goes above threshold (0 = disabled)
@@ -60,12 +59,8 @@ public:
 
     lastTime = millis();
 
-    // ESP32 ESP32S3 and ESP32C3
-    temperature = roundf(temperatureRead() * 10) / 10;
-
     // Read ADC (0–4095 on ESP32)
     int raw = analogRead(PIN_CURRENT);
-    Serial.printf("Raw ADC: %d\n", raw);
     float amps = raw * ADC_TO_AMPS_SLOPE + ADC_TO_AMPS_OFFSET;
     if (amps < 0.0f) amps = 0.0f;  // clamp negative
 
@@ -97,17 +92,10 @@ public:
     JsonObject user = root["u"];
     if (user.isNull()) user = root.createNestedObject("u");
 
-    // Temperature (from WLED core)
-    if (temperature != -127.0f) {
-      JsonArray tempArr = user.createNestedArray(F("Temp"));
-      tempArr.add(temperature);
-      tempArr.add(F("°C"));
-    }
-
     // Current + status
     JsonArray currArr = user.createNestedArray(F("Current"));
-    currArr.add(currentAverage);                    // 2 decimal places
-    currArr.add(tripped ? F(" - TRIPPED!") : F(" - OK"));
+    currArr.add(roundf(currentAverage * 1000.0f) / 1000.0f);
+    currArr.add(tripped ? F("A TRIPPED!") : F("A"));
   }
 
   void addToJsonState(JsonObject& root) {
