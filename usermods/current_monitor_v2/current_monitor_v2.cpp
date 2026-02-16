@@ -36,6 +36,10 @@ private:
   uint8_t idx = 0;
   bool bufferFull = false;
 
+  // MQTT publishing
+  unsigned long lastMqttPublish = 0;
+  static constexpr unsigned long MQTT_PUBLISH_INTERVAL = 10000;  // 10s
+
   static const char _name[];
   static const char _enabled[];
   static const char _loopInterval[];
@@ -83,6 +87,16 @@ public:
       tripped = false;
       Serial.println(F("Current safe again"));
     }
+
+    // Publish to MQTT
+    #ifndef WLED_DISABLE_MQTT
+    if (WLED_MQTT_CONNECTED && millis() - lastMqttPublish > MQTT_PUBLISH_INTERVAL) {
+      lastMqttPublish = millis();
+      char buf[64];
+      snprintf_P(buf, sizeof(buf), PSTR("%s/current"), mqttDeviceTopic);
+      mqtt->publish(buf, 0, false, String(currentAverage, 3).c_str());
+    }
+    #endif
 
   }
 

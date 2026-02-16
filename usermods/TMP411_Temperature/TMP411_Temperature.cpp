@@ -39,6 +39,10 @@ private:
   uint8_t previousPreset = 0;
   uint8_t previousPlaylist = 0;
 
+  // MQTT publishing
+  unsigned long lastMqttPublish = 0;
+  static constexpr unsigned long MQTT_PUBLISH_INTERVAL = 10000;  // 10s
+
   static const char _name[];
   static const char _enabled[];
   static const char _loopInterval[];
@@ -139,6 +143,16 @@ public:
 
     temperature = readLocalTemperature();
     temperature = roundf(temperature * 10.0f) / 10.0f;  // round to 0.1°C
+
+    // Publish to MQTT
+    #ifndef WLED_DISABLE_MQTT
+    if (WLED_MQTT_CONNECTED && millis() - lastMqttPublish > MQTT_PUBLISH_INTERVAL) {
+      lastMqttPublish = millis();
+      char buf[64];
+      snprintf_P(buf, sizeof(buf), PSTR("%s/board_temp"), mqttDeviceTopic);
+      mqtt->publish(buf, 0, false, String(temperature, 1).c_str());
+    }
+    #endif
 
     // High-temperature preset activation
     if (presetToActivate > 0) {

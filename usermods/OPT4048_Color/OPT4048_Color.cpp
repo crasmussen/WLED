@@ -51,6 +51,10 @@ private:
   // Raw ADC codes
   uint32_t adcCh[4] = {0};
 
+  // MQTT publishing
+  unsigned long lastMqttPublish = 0;
+  static constexpr unsigned long MQTT_PUBLISH_INTERVAL = 10000;  // 10s
+
   static const char _name[];
   static const char _enabled[];
   static const char _loopInterval[];
@@ -208,6 +212,22 @@ public:
 
     readAllChannels();
     computeColorMetrics();
+
+    // Publish to MQTT
+    #ifndef WLED_DISABLE_MQTT
+    if (WLED_MQTT_CONNECTED && millis() - lastMqttPublish > MQTT_PUBLISH_INTERVAL) {
+      lastMqttPublish = millis();
+      char buf[64];
+      snprintf_P(buf, sizeof(buf), PSTR("%s/lux"), mqttDeviceTopic);
+      mqtt->publish(buf, 0, false, String(lux, 1).c_str());
+      snprintf_P(buf, sizeof(buf), PSTR("%s/cct"), mqttDeviceTopic);
+      mqtt->publish(buf, 0, false, String((int)roundf(cct)).c_str());
+      snprintf_P(buf, sizeof(buf), PSTR("%s/cie_x"), mqttDeviceTopic);
+      mqtt->publish(buf, 0, false, String(cieX, 4).c_str());
+      snprintf_P(buf, sizeof(buf), PSTR("%s/cie_y"), mqttDeviceTopic);
+      mqtt->publish(buf, 0, false, String(cieY, 4).c_str());
+    }
+    #endif
   }
 
   void addToJsonInfo(JsonObject& root) {
