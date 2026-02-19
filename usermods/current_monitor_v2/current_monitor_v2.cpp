@@ -23,8 +23,8 @@ private:
   static const int SAMPLE_INTERVAL = 10;    // ~10ms between samples
   static constexpr float TRIP_CURRENT_A = 10.0f; // shut-off threshold in Amps
 
-  static constexpr float ADC_TO_AMPS_SLOPE  = 0.00829253f;   // e.g. 0.01352 A per ADC unit
-  static constexpr float ADC_TO_AMPS_OFFSET = -2.87447f;     // e.g. small offset in Amps
+  static constexpr float ADC_TO_AMPS_SLOPE  = 0.012336f;   // calibrated from 3-point fit (322/1.078A, 610/4.382A, 925/8.525A)
+  static constexpr float ADC_TO_AMPS_OFFSET = -2.974f;     // y-intercept of linear fit
 
   unsigned long lastSample = 0;
   float currentAverage = 0.0f;
