@@ -15,13 +15,12 @@ private:
   uint8_t previousPlaylist = 0;         // Stores the playlist that was active before high-temperature activation
   uint8_t previousPreset = 0;           // Stores the preset that was active before high-temperature activation
   uint8_t presetToActivate = 0;         // Preset to activate when temp goes above threshold (0 = disabled)
-  float activationThreshold = 30.0f;    // Temperature threshold to trigger high-temperature actions
   float resetMargin = 2.0f;             // Margin below the activation threshold (Prevents frequent toggling when close to threshold)
   bool isAboveThreshold = false;        // Flag to track if the high temperature preset is currently active
 
   static const int PIN_CURRENT = A0;        // ADC pin for current sensor
   static const int SAMPLE_INTERVAL = 10;    // ~10ms between samples
-  static constexpr float TRIP_CURRENT_A = 10.0f; // shut-off threshold in Amps
+  static constexpr float TRIP_CURRENT_A = 18.0f; // shut-off threshold in Amps
 
   static constexpr float ADC_TO_AMPS_SLOPE  = 0.012336f;   // calibrated from 3-point fit (322/1.078A, 610/4.382A, 925/8.525A)
   static constexpr float ADC_TO_AMPS_OFFSET = -2.974f;     // y-intercept of linear fit
