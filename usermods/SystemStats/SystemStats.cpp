@@ -32,7 +32,9 @@ public:
     // Build JSON payload
     char payload[256];
     snprintf_P(payload, sizeof(payload),
-      PSTR("{\"rssi\":%d,\"heap\":%u,\"uptime\":%lu,\"fps\":%u,\"bri\":%u,\"power_mA\":%u,\"wifi_ch\":%d,\"freeheap_min\":%u}"),
+      PSTR("{\"t\":%lu,\"ntp\":%s,\"rssi\":%d,\"heap\":%u,\"uptime\":%lu,\"fps\":%u,\"bri\":%u,\"power_mA\":%u,\"wifi_ch\":%d,\"freeheap_min\":%u}"),
+      (unsigned long)toki.second(),
+      toki.getTimeSource() > TOKI_TS_NONE ? "true" : "false",
       WiFi.RSSI(),
       ESP.getFreeHeap(),
       millis() / 1000,

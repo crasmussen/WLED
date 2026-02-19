@@ -217,15 +217,13 @@ public:
     #ifndef WLED_DISABLE_MQTT
     if (WLED_MQTT_CONNECTED && millis() - lastMqttPublish > MQTT_PUBLISH_INTERVAL) {
       lastMqttPublish = millis();
-      char buf[64];
-      snprintf_P(buf, sizeof(buf), PSTR("%s/lux"), mqttDeviceTopic);
-      mqtt->publish(buf, 0, false, String(lux, 1).c_str());
-      snprintf_P(buf, sizeof(buf), PSTR("%s/cct"), mqttDeviceTopic);
-      mqtt->publish(buf, 0, false, String((int)roundf(cct)).c_str());
-      snprintf_P(buf, sizeof(buf), PSTR("%s/cie_x"), mqttDeviceTopic);
-      mqtt->publish(buf, 0, false, String(cieX, 4).c_str());
-      snprintf_P(buf, sizeof(buf), PSTR("%s/cie_y"), mqttDeviceTopic);
-      mqtt->publish(buf, 0, false, String(cieY, 4).c_str());
+      char topic[64];
+      char payload[160];
+      snprintf_P(topic, sizeof(topic), PSTR("%s/color"), mqttDeviceTopic);
+      snprintf_P(payload, sizeof(payload),
+        PSTR("{\"t\":%lu,\"lux\":%.1f,\"cct\":%d,\"cie_x\":%.4f,\"cie_y\":%.4f}"),
+        (unsigned long)toki.second(), lux, (int)roundf(cct), cieX, cieY);
+      mqtt->publish(topic, 0, false, payload);
     }
     #endif
   }

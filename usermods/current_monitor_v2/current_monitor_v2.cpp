@@ -33,8 +33,10 @@ private:
   // Circular buffer for 10-sample moving average
   static const uint8_t BUFFER_SIZE = 10;
   float samples[BUFFER_SIZE] = {0};
+  int rawSamples[BUFFER_SIZE] = {0};
   uint8_t idx = 0;
   bool bufferFull = false;
+  float rawAdcAverage = 0.0f;
 
   // MQTT publishing
   unsigned long lastMqttPublish = 0;
@@ -69,13 +71,19 @@ public:
     if (amps < 0.0f) amps = 0.0f;  // clamp negative
 
     samples[idx] = amps;
+    rawSamples[idx] = raw;
     idx = (idx + 1) % BUFFER_SIZE;
     if (idx == 0) bufferFull = true;
 
     float sum = 0.0f;
+    float rawSum = 0.0f;
     uint8_t count = bufferFull ? BUFFER_SIZE : idx;
-    for (uint8_t i = 0; i < count; i++) sum += samples[i];
+    for (uint8_t i = 0; i < count; i++) {
+      sum += samples[i];
+      rawSum += rawSamples[i];
+    }
     currentAverage = sum / count;
+    rawAdcAverage = rawSum / count;
 
     // Over-current protection
     if (currentAverage > TRIP_CURRENT_A && !tripped) {
@@ -92,9 +100,13 @@ public:
     #ifndef WLED_DISABLE_MQTT
     if (WLED_MQTT_CONNECTED && millis() - lastMqttPublish > MQTT_PUBLISH_INTERVAL) {
       lastMqttPublish = millis();
-      char buf[64];
-      snprintf_P(buf, sizeof(buf), PSTR("%s/current"), mqttDeviceTopic);
-      mqtt->publish(buf, 0, false, String(currentAverage, 3).c_str());
+      char topic[64];
+      char payload[128];
+      snprintf_P(topic, sizeof(topic), PSTR("%s/current"), mqttDeviceTopic);
+      snprintf_P(payload, sizeof(payload),
+        PSTR("{\"t\":%lu,\"amps\":%.3f,\"raw_adc\":%.1f}"),
+        (unsigned long)toki.second(), currentAverage, rawAdcAverage);
+      mqtt->publish(topic, 0, false, payload);
     }
     #endif
 
@@ -110,6 +122,10 @@ public:
     JsonArray currArr = user.createNestedArray(F("Current"));
     currArr.add(roundf(currentAverage * 1000.0f) / 1000.0f);
     currArr.add(tripped ? F("A TRIPPED!") : F("A"));
+
+    JsonArray rawArr = user.createNestedArray(F("ADC Raw Avg"));
+    rawArr.add(roundf(rawAdcAverage * 10.0f) / 10.0f);
+    rawArr.add(F("counts"));
   }
 
   void addToJsonState(JsonObject& root) {

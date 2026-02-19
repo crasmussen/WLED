@@ -148,9 +148,13 @@ public:
     #ifndef WLED_DISABLE_MQTT
     if (WLED_MQTT_CONNECTED && millis() - lastMqttPublish > MQTT_PUBLISH_INTERVAL) {
       lastMqttPublish = millis();
-      char buf[64];
-      snprintf_P(buf, sizeof(buf), PSTR("%s/board_temp"), mqttDeviceTopic);
-      mqtt->publish(buf, 0, false, String(temperature, 1).c_str());
+      char topic[64];
+      char payload[96];
+      snprintf_P(topic, sizeof(topic), PSTR("%s/board_temp"), mqttDeviceTopic);
+      snprintf_P(payload, sizeof(payload),
+        PSTR("{\"t\":%lu,\"temp_c\":%.1f}"),
+        (unsigned long)toki.second(), temperature);
+      mqtt->publish(topic, 0, false, payload);
     }
     #endif
 
